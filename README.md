@@ -4,6 +4,9 @@ The library python-visualize is a collection of python functions to create 2D gr
 # Dependencies
 As it stands, python-visualize depends upon Numpy, PIL, matplotlib, MoviePy, and blend-modes.
 
+# License
+This library is released under the (permissive) MIT License and, therefore, may be used in whole or part in almost all situations.  As this is a storehouse for test projects, however, I am unable to offer assistance in its use.
+ 
 # Visualizations
 
 ## Snowy Landscape Animation
