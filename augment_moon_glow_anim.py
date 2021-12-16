@@ -4,8 +4,6 @@ import os.path
 import random
 import time
 
-# import moviepy as mpy
-# import moviepy.editor as mpe
 import numpy as np
 import PIL
 import PIL.ImageDraw
@@ -17,7 +15,6 @@ import scipy.interpolate
 
 from colour_system import cs_srgb
 import fractal_profile
-
 
 cs = cs_srgb
 
@@ -43,16 +40,11 @@ class FrameProcessor:
         C = 490e-9
         B = 465e-9
         V = 440e-9
-        # dxs = [1/14] * 2 + [1/7] * 6
-        # x = 0
-        # xs = [x]
-        # for dx in dxs:
-        #     x += dx
-        #     xs.append(x)
-        # lams = [Y, O, R, V, B, G, Y, O, R]
         lams = [V, V, B, C, C, C, G, Y, Y, Y, O, O, O, R]
         xs = np.linspace(0, 1, len(lams))
         self.__color_spline = scipy.interpolate.UnivariateSpline(xs, lams)
+        if not os.path.exists(self.__frame_directory):
+            os.makedirs(self.__frame_directory)
 
     def save(self, output_directory, filename):
         # clip = mpe.ImageSequenceClip(self.__frame_directory, fps=self.__fps)
@@ -151,7 +143,6 @@ class FrameProcessor:
 
             pixdata = ring.load()
             for x in range(x0, x1):
-                # print('{} of {}'.format(x - x0, x1-x0))
                 for y in range(y0, y1):
                     theta = math.atan2(x-xc, y-yc)
                     r = math.sqrt(((x - xc)**2) + ((y - yc)**2))
@@ -162,7 +153,6 @@ class FrameProcessor:
                         pixdata[x, y] = color
             ring = ring.filter(PIL.ImageFilter.GaussianBlur(5))
             composite = PIL.Image.alpha_composite(composite, ring)
-        # composite.show()
         print('\t\tin {} s'.format((time.perf_counter_ns() - t_start) / 1e9))
         im_filename = 'frame_{:05d}.png'.format(frame_num)
         if not self.__scale == 1:
@@ -220,15 +210,12 @@ def getFrameNum(file):
 
 
 if __name__ == '__main__':
-    print('Frame Number = {}'.format(getFrameNum('frame_01000.png')))
-
-    fps = 60
-    scale = 5
-    frame_range = (13500, 13501)
+    fps = 24
+    scale = 3
+    frame_range = None
     output_directory = 'snowy_landscape_outputs'
     input_directory = 'moon_reference_frames'
-    input_filename = '4k_animation_moon_reference_3_45s_2.mp4'
-    output_filename = 'test_augmented_moon_output.mp4'
+    input_filename = 'test_moon_reference_24_1280_720_72.mp4'
     print('Load Moon Reference Video')
 
     processor = FrameProcessor(fps, scale=scale)
@@ -240,11 +227,3 @@ if __name__ == '__main__':
             t_start = time.perf_counter_ns()
             im = PIL.Image.open(path)
             processor(im, path, debug=False, t_start=t_start, frame_num=frame_num)
-
-    #processor.save(output_directory, output_filename)
-
-    # print('Generate Main Animation...')
-    # clip = mpy.ImageSequenceClip(frame_directory, fps=fps)
-    # animation_path = os.path.join(output_directory, 'test_animation.mp4')
-    # clip.write_videofile(animation_path, fps=fps)
-    # print('Animation saved as {}'.format(animation_path))
