@@ -29,9 +29,9 @@ if __name__ == '__main__':
     #
     movie_name = 'test'
     fps = 24
-    t_play = 10
+    t_play = 3
     dims = (1280, 720)
-    movie_gen = False
+    movie_gen = True
     movie_fmt = '{name}_{layer}_{fps}_{width}_{height}_{frames}.mp4'
 
     snowflake_directory = 'snowflake_images'
@@ -97,9 +97,19 @@ if __name__ == '__main__':
 
     num_frames = int(fps * t_play + 0.5)
 
-    print('Deleting previous frames')
-    for file in os.listdir(frame_directory):
-        os.remove(os.path.join(frame_directory, file))
+    print('Deleting previous landscape frames')
+    if not os.path.exists(frame_directory):
+        os.makedirs(frame_directory)
+    else:
+        for file in os.listdir(frame_directory):
+            os.remove(os.path.join(frame_directory, file))
+
+    print('Deleting previous moon reference frames')
+    if not os.path.exists(moon_frame_directory):
+        os.makedirs(moon_frame_directory)
+    else:
+        for file in os.listdir(moon_frame_directory):
+            os.remove(os.path.join(moon_frame_directory, file))
 
     update_landscape = True
     landscape = None
@@ -135,14 +145,14 @@ if __name__ == '__main__':
         print('\t\tUpdate Moon')
         update_landscape = moon.update(dt)
         moon_frame = moon.render(clear_img.copy(), mask=mountain_mask)
-        filename = 'frame_{:05d}.png'.format(idx)
-        moon_frame.save(os.path.join(moon_frame_directory, filename))
         print('\t\tUpdate Snow Scene')
         t_start = datetime.datetime.now()
         snow_scene.update(dt, default_wind)
         print('\t\t\tt = {}'.format(datetime.datetime.now() - t_start))
+        filename = 'frame_{:05d}.png'.format(idx)
         print('\t\tSave frame -- {}'.format(filename))
         frame.save(os.path.join(frame_directory, filename))
+        moon_frame.save(os.path.join(moon_frame_directory, filename))
         print('\t\tFrame Time = {}'.format(datetime.datetime.now() - t_start_frame))
 
     if movie_gen:
@@ -152,8 +162,10 @@ if __name__ == '__main__':
             'fps': fps,
             'width': dims[0],
             'height': dims[1],
-            'frame': num_frames
+            'frames': num_frames
         }
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
         print('Generate Moon Reference Animation...')
         clip = mpy.ImageSequenceClip(moon_frame_directory, fps=fps)
         kwargs['layer'] = 'moon_reference'
