@@ -20,32 +20,33 @@ if __name__ == '__main__':
     import PIL
 
     import func_profiles
-    import moon_render
-    import mountain_range
-    import random_snowflake_plotting_test
+    import moon_visualization
+    import mountain_range_visualization
+    import snowflake_visualization
 
     #
     # Configuration Values
     #
-    # random.seed(123456)
-
+    movie_name = 'test'
     fps = 24
     t_play = 10
     dims = (1280, 720)
+    movie_gen = False
+    movie_fmt = '{name}_{layer}_{fps}_{width}_{height}_{frames}.mp4'
 
     snowflake_directory = 'snowflake_images'
     frame_directory = 'snowy_landscape_frames'
     moon_frame_directory = 'moon_reference_frames'
     output_directory = 'snowy_landscape_outputs'
 
-    atmosphere_color = (30, 30, 40, 16)  # (85, 85, 128, 128)
+    atmosphere_color = (30, 30, 40, 16)
     sky_bottom_color = (8, 8, 48, 255)
     sky_top_color = (0, 0, 0, 255)
     illumination_strength = 0.55
 
     z_snow_min = 0.25
-    z_snow_max = 20
-    N_snow_layers = 10
+    z_snow_max = 5
+    N_snow_layers = 5
 
     view_width = math.radians(30)
 
@@ -54,24 +55,25 @@ if __name__ == '__main__':
     #
     dt = 1 / fps
 
-    view = moon_render.ViewFromDimsAndAngularWidth(dims, view_width)
+    view = moon_visualization.ViewFromDimsAndAngularWidth(dims, view_width)
 
     src_snowflakes = []
     print('Load Snowflake Images')
+    assert os.path.exists(snowflake_directory), 'Error: Snowflake image directory - {} - not found!'.format(snowflake_directory)
     for file in os.listdir(snowflake_directory):
         if file.endswith(".png"):
             path = os.path.join(snowflake_directory, file)
-            # print('Loading {}'.format(path))
             img = PIL.Image.open(path)
             src_snowflakes.append(img)
+    assert len(src_snowflakes) > 0, 'Error: Snowflake image directory - {} - is empty!'.format(snowflake_directory)
     print('\t{} snowflakes loaded'.format(len(src_snowflakes)))
 
     print('Generate Snow Scene')
-    snow_distances = random_snowflake_plotting_test.distance_list(z_snow_min, z_snow_max, N_snow_layers)
-    snow_scene = random_snowflake_plotting_test.SnowflakeScene.FromDistances(dims, view[1], snow_distances, src_snowflakes)
+    snow_distances = snowflake_visualization.distance_list(z_snow_min, z_snow_max, N_snow_layers)
+    snow_scene = snowflake_visualization.SnowflakeScene.FromDistances(dims, view[1], snow_distances, src_snowflakes)
 
     print('Generate Base Images (Background and Atmosphere)')
-    background_img = random_snowflake_plotting_test.vertical_gradient(sky_bottom_color, sky_top_color, dims, mode='RGBA')
+    background_img = snowflake_visualization.vertical_gradient(sky_bottom_color, sky_top_color, dims, mode='RGBA')
     atmosphere_img = PIL.Image.new('RGBA', dims, color=atmosphere_color)
 
     print('Generate Empty Image')
@@ -79,17 +81,17 @@ if __name__ == '__main__':
 
     print('Generate Mountain Profile')
     mountain_profile = func_profiles.TriangleProfile(x1=(0.6, 0.7), y1=1, y_mults=(0.15, 0.3))
-    mountain = mountain_range.MountainProfile(num_peaks=5, levels=7, scale_multiplier=0.3, profile_func=mountain_profile)
+    mountain = mountain_range_visualization.MountainProfile(num_peaks=5, levels=7, scale_multiplier=0.3, profile_func=mountain_profile)
     xs, hs = mountain.profile
     print('Generate Mountain Mask')
-    mountain_mask = mountain_range.renderMountainMask(mountain, dims)
+    mountain_mask = mountain_range_visualization.renderMountainMask(mountain, dims)
     h_snow = mountain.snow_threshold(29, xs, hs)
 
     print('\t\tGenerate Moon')  # TODO: THIS SHOULD ACTUALLY BE REIMPLEMENTED WITH AN UPDATE ON THE MOON OBJECT
     h_moon_final = random.uniform(0.8, 1.0)
     idx = int(len(xs) / 3)
     x_moon_init, h_moon_init = xs[idx], 0.75*hs[idx]
-    moon = moon_render.Moon.SizeFromView(x_moon_init, h_moon_init, dims[0], view, percent=20)
+    moon = moon_visualization.Moon.SizeFromView(x_moon_init, h_moon_init, dims[0], view, percent=20)
     moon.calculate_mult_t(h_moon_final, t_play)
     h_offset = moon.img.size[0] / (2 * dims[1])
 
@@ -119,7 +121,7 @@ if __name__ == '__main__':
             print('\t\t\tRender Mountains')
             ill_kws = moon.ill_kws
             ill_kws['strength'] = illumination_strength
-            mid = mountain_range.renderMountain(mountain, dims, snow_threshold=h_snow, ill_kws=ill_kws)
+            mid = mountain_range_visualization.renderMountain(mountain, dims, snow_threshold=h_snow, ill_kws=ill_kws)
             landscape = PIL.Image.alpha_composite(landscape, mid)
             if glow is None:
                 atmosphere = atmosphere_img.copy()
@@ -142,14 +144,28 @@ if __name__ == '__main__':
         print('\t\tSave frame -- {}'.format(filename))
         frame.save(os.path.join(frame_directory, filename))
         print('\t\tFrame Time = {}'.format(datetime.datetime.now() - t_start_frame))
-    print('Generate Moon Reference Animation...')
-    clip = mpy.ImageSequenceClip(moon_frame_directory, fps=fps)
-    animation_path = os.path.join(output_directory, 'test_moon_reference_animation.mp4')
-    clip.write_videofile(animation_path, fps=fps)
-    print('Animation saved as {}'.format(animation_path))
 
-    print('Generate Main Animation...')
-    clip = mpy.ImageSequenceClip(frame_directory, fps=fps)
-    animation_path = os.path.join(output_directory, 'test_animation.mp4')
-    clip.write_videofile(animation_path, fps=fps)
-    print('Animation saved as {}'.format(animation_path))
+    if movie_gen:
+        kwargs = {
+            'name': movie_name,
+            'layer': None,
+            'fps': fps,
+            'width': dims[0],
+            'height': dims[1],
+            'frame': num_frames
+        }
+        print('Generate Moon Reference Animation...')
+        clip = mpy.ImageSequenceClip(moon_frame_directory, fps=fps)
+        kwargs['layer'] = 'moon_reference'
+        filename = '{name}_{layer}_{fps}_{width}_{height}_{frames}.mp4'.format(**kwargs)
+        animation_path = os.path.join(output_directory, filename)
+        clip.write_videofile(animation_path, fps=fps)
+        print('Animation saved as {}'.format(animation_path))
+
+        print('Generate Main Animation...')
+        clip = mpy.ImageSequenceClip(frame_directory, fps=fps)
+        kwargs['layer'] = 'landscape'
+        filename = '{name}_{layer}_{fps}_{width}_{height}_{frames}.mp4'.format(**kwargs)
+        animation_path = os.path.join(output_directory, filename)
+        clip.write_videofile(animation_path, fps=fps)
+        print('Animation saved as {}'.format(animation_path))

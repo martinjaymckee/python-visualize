@@ -117,15 +117,12 @@ def generateRandomSnowflake(coord, colors, branch_color='c', ray_color='g'):
 def plotHex(ax, hcoord, vcoord, colors, labels=None, ignore_color=None):
     ax.set_aspect('equal')
     ax.set_facecolor((0, 0, 0))
-    # Add some coloured hexagons
+
     for x, y, color in zip(hcoord, vcoord, colors):
         if color is not ignore_color:
             hex = RegularPolygon((x, y), numVertices=6, radius=2. / 3.,
                                  facecolor=color, alpha=0.8, edgecolor=None)
             ax.add_patch(hex)
-
-    # Also add scatter points in hexagon centres
-    # ax.scatter(hcoord, vcoord, c=[c[0].lower() for c in colors], alpha=0.5)
 
     if labels is not None:
         for x, y, l in zip(hcoord, vcoord, labels):
@@ -151,6 +148,7 @@ def generateSnowflakeDirectory(directory, num, N=150, resolution=2000):
         colors, c_start = generateRandomSnowflake(coord, colors, branch_color='w', ray_color='w')
         plotHex(ax, hcoord, vcoord, colors, ignore_color=c_transparent)
         fig.savefig(os.path.join(directory, filename), transparent=True)
+        fig.close()
 
 
 class SnowflakePlane:
