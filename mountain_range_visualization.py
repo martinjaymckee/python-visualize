@@ -10,7 +10,8 @@ import PIL.ImageFilter
 
 import func_profiles
 
-def blend(c1, c2, a=0.5):
+
+def blend(c1, c2, a=0.5):  # TODO: THIS SHOULD BE MOVED TO A FILE WITH OTHER COLOR UTILITIES
     c1 = np.array(c1)
     c2 = np.array(c2)
     cr = a * c1 + (1-a) * c2
@@ -306,22 +307,3 @@ if __name__ == '__main__':
     ills = [mountain.illumination(x, ill_kws['x_src'], ill_kws['h_src']) for x in xs]
     axs[2].plot(xs, ills)
     plt.show()
-    # xs, hs = mountain.illumination(0.5, 0.5)
-    # img = PIL.Image.new('RGBA', dims, color=(0, 0, 0, 0))
-    # img = drawIlluminator(img, ill_kws=ill_kws)
-    # img = renderMountain(mountain, dims, snow_threshold=h_snow, ill_kws=ill_kws, base=img)
-    # img.show()
-    # img = PIL.Image.new('RGBA', dims, color=(0, 0, 0, 0))
-    # img = drawIlluminator(img, ill_kws=ill_kws)
-    # N = 10
-    # img = img.filter(PIL.ImageFilter.MaxFilter(int(2*N + 1)))  # Dialate the illuminator - Odd Number
-    # img = img.filter(PIL.ImageFilter.GaussianBlur(int(2.15 * N)))  # Blure the illuminator
-    # img = drawIlluminator(img, ill_kws=ill_kws)
-    # img.show()
-    # fig, ax = plt.subplots(1, figsize=(16, 9), constrained_layout=True)
-    # ax.plot(xs, hs)
-    # ax.axis("off")
-    # ax.set_xlim(0, 1)
-    # ax.set_ylim(0, 1)
-
-    # plt.show()
