@@ -15,9 +15,6 @@ def generateGrid(N, circular=True, highlight_drive=False, highlight_color='c', b
     def in_drive_section(c):
         return c[0] >= 0 and c[1] >= 0
 
-    # coord = [[0,0,0],[0,1,-1],[-1,1,0],[-1,0,1],[0,-1,1],[1,-1,0],[1,0,-1]]
-    # colors = [["Green"],["Blue"],["Green"],["Green"],["Red"],["Green"],["Green"]]
-
     coord = []
     colors = []
 
@@ -25,7 +22,7 @@ def generateGrid(N, circular=True, highlight_drive=False, highlight_color='c', b
         pos = (c[0], c[1], -c[1])
         coord.append(pos)
         highlighted = highlight_drive and in_drive_section(pos)
-        colors.append( highlight_color if highlighted else background_color )
+        colors.append(highlight_color if highlighted else background_color)
 
     # Vertical cartesian coords
     vcoord = [c[0] for c in coord]
@@ -67,7 +64,7 @@ def generateRandomSnowflake(coord, colors, branch_color='c', ray_color='g'):
     def genRay(N):
         start_probability = 0.65
         end_probability = 0.1
-        branch_probability = 0.3 #0.2
+        branch_probability = 0.3
         max_ring = int(N/4)
         min_size = int(N/2)
         started = False
@@ -141,6 +138,8 @@ def plotHex(ax, hcoord, vcoord, colors, labels=None, ignore_color=None):
 
 def generateSnowflakeDirectory(directory, num, N=150, resolution=2000):
     c_transparent = (0, 0, 0, 0)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     for idx in range(num):
         filename = 'snowflake_{}.png'.format(idx)
         fig, ax = plt.subplots(1, figsize=(1, 1), constrained_layout=True, dpi=resolution)
@@ -296,44 +295,35 @@ def distance_list(z0, zn, N):
 
 
 if __name__ == "__main__":
-
-    # import moviepy.editor as mpy
-    #
-    fps = 24
-    # t_play = 60*15
-    #
-    # # dims = (3840, 2160)
-    dims = (1920, 1080)
-    # dims = (1280, 720)
     snowflake_directory = 'snowflake_images'
-    # frame_directory = 'snowflake_frames'
-    # output_directory = 'snowflake_outputs'
+    num_snowflakes = 100
+    snowflake_resolution = 1000
+    snowflake_diameter_cells = 150
+    generateSnowflakeDirectory(snowflake_directory, num_snowflakes, N=snowflake_diameter_cells, resolution=snowflake_resolution)
     #
-    # background_img = vertical_gradient((8, 8, 48, 255), (0, 0, 0, 255), dims, mode='RGBA')
+    # src_snowflakes = []
+    # for file in os.listdir(snowflake_directory):
+    #     if file.endswith(".png"):
+    #         path = os.path.join(snowflake_directory, file)
+    #         # print('Loading {}'.format(path))
+    #         img = PIL.Image.open(path)
+    #         src_snowflakes.append(img)
+    # print('{} snowflakes loaded'.format(len(src_snowflakes)))
     #
-    src_snowflakes = []
-    for file in os.listdir(snowflake_directory):
-        if file.endswith(".png"):
-            path = os.path.join(snowflake_directory, file)
-            # print('Loading {}'.format(path))
-            img = PIL.Image.open(path)
-            src_snowflakes.append(img)
-    print('{} snowflakes loaded'.format(len(src_snowflakes)))
-
-    def simple_wind(t, h, d):
-        time_scale = 0.1
-        v_max = 0.035
-        v_sd = 0.001
-        return random.gauss(v_max * math.sin(time_scale*t + h + d), v_sd)
-
-    scene = SnowflakeScene.FromDistances(dims, math.radians(50), [0.25, 0.44, 0.77, 1.34, 2.34, 4.10, 7.18, 12.57], src_snowflakes)
-
-    dt = 1 / fps
-
-    for _ in range(10):
-        t_start = datetime.datetime.now()
-        scene.update(dt, wind_func=simple_wind)
-        print('t = {}'.format(datetime.datetime.now() - t_start))
+    # def simple_wind(t, h, d):
+    #     time_scale = 0.1
+    #     v_max = 0.035
+    #     v_sd = 0.001
+    #     return random.gauss(v_max * math.sin(time_scale*t + h + d), v_sd)
+    #
+    # scene = SnowflakeScene.FromDistances(dims, math.radians(50), [0.25, 0.44, 0.77, 1.34, 2.34, 4.10, 7.18, 12.57], src_snowflakes)
+    #
+    # dt = 1 / fps
+    #
+    # for _ in range(10):
+    #     t_start = datetime.datetime.now()
+    #     scene.update(dt, wind_func=simple_wind)
+    #     print('t = {}'.format(datetime.datetime.now() - t_start))
 
     # # scene = SnowflakeScene.FromDistances(dims, math.radians(50), [0.25, 0.44, 0.77, 1.34, 2.34, 4.10], src_snowflakes)
     # # scene = SnowflakeScene.FromDistances(dims, math.radians(50), [0.3, 0.45, 0.68, 1.01, 1.52, 2.28, 3.42, 5.13], src_snowflakes)

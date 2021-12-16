@@ -29,15 +29,9 @@ if __name__ == '__main__':
     #
     # random.seed(123456)
 
-    # fps = 24
-    # fps = 30
-    fps = 60
-    # t_play = 300
-    # dims = (1280, 720)
-    # dims = (1920, 1080)
-    # dims = (640, 360)
-    t_play = 3 * 60 + 45
-    dims = (3840, 2160)
+    fps = 24
+    t_play = 10
+    dims = (1280, 720)
 
     snowflake_directory = 'snowflake_images'
     frame_directory = 'snowy_landscape_frames'
